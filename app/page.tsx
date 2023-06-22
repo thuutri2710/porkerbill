@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useRef, useState } from "react";
+import { useLayoutEffect, useRef, useState } from "react";
 
 interface User {
   name: string;
@@ -20,7 +20,7 @@ export default function Home() {
   const [actions, setActions] = useState<Action[]>([]);
   const [buyIn, setBuyIn] = useState<number>(50);
 
-  useEffect(() => {
+  useLayoutEffect(() => {
     if (!inputRef.current) {
       return;
     }
@@ -47,9 +47,8 @@ export default function Home() {
     }
 
     const obj: Record<string, number> = {};
-
     const input = inputRef.current.value;
-    localStorage.setItem("storedValue", input);
+
     const lines = input.split("\n").filter(Boolean);
 
     lines.forEach((line) => {
@@ -175,6 +174,10 @@ export default function Home() {
         <div>
           <p className="text-lg font-medium text-center mb-4">Transactions</p>
           <textarea
+            onChange={(e) => {
+              const input = e.target.value;
+              localStorage.setItem("storedValue", input);
+            }}
             ref={inputRef}
             className="border border-gray-500 w-full md:w-[400px] min-h-[600px] p-4 placeholder-slate-400"
             rows={inputRef.current?.value ? undefined : 5}
