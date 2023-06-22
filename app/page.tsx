@@ -1,7 +1,7 @@
 "use client";
 
-import { useLayoutEffect, useRef, useState } from "react";
-
+import { useEffect, useLayoutEffect, useRef, useState } from "react";
+import { toPng } from "html-to-image";
 interface User {
   name: string;
   money: number;
@@ -52,7 +52,11 @@ export default function Home() {
     const lines = input.split("\n").filter(Boolean);
 
     lines.forEach((line) => {
-      const [debtor, creditor, money = "50"] = line.split(" ");
+      const [d, c, m = "50"] = line.split(" ");
+      const debitor = d.trim();
+      const creditor = c.trim();
+      const money = m.trim();
+
       let times = 0;
       let parsedMoney = 0;
       if (money.startsWith("*")) {
@@ -73,15 +77,19 @@ export default function Home() {
         return;
       }
 
-      if (obj[debtor] === undefined) {
-        obj[debtor] = 0;
+      if (!parsedMoney) {
+        return;
+      }
+
+      if (obj[debitor] === undefined) {
+        obj[debitor] = 0;
       }
 
       if (obj[creditor] === undefined) {
         obj[creditor] = 0;
       }
 
-      obj[debtor] -= parsedMoney;
+      obj[debitor] -= parsedMoney;
       obj[creditor] += parsedMoney;
     });
 
@@ -153,6 +161,28 @@ export default function Home() {
     setActions([...listAction]);
   };
 
+  useEffect(() => {
+    const copyImageToClipboard = async () => {
+      try {
+        const node = document.getElementById("actions");
+
+        if (!node || actions.length === 0) {
+          return;
+        }
+
+        const dataUrl = await toPng(node);
+
+        const item = new ClipboardItem({ "image/png": dataUrl });
+        await navigator.clipboard.write([item]);
+        console.log("Fetched image copied.");
+      } catch (error) {
+        console.error("oops, something went wrong!", error);
+      }
+    };
+
+    copyImageToClipboard();
+  }, [actions]);
+
   return (
     <div className="flex flex-col justify-center items-center w-full h-full mt-4 sm:mt-16 px-2 sm:px-0">
       <div className="order-1">
@@ -212,7 +242,10 @@ jack david *2
         </div>
         <div>
           <p className="text-lg font-medium text-center mb-4">Actions</p>
-          <div className="border border-gray-500 w-full sm:w-[400px] min-h-[600px] p-4">
+          <div
+            className="border border-gray-500 w-full sm:w-[400px] min-h-[600px] p-4 bg-white"
+            id="actions"
+          >
             {actions.map(({ debitor, creditor, money }) => {
               return (
                 <div className="flex flex-row justify-between" key={`${debitor}${creditor}`}>
