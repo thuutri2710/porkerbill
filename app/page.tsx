@@ -1,6 +1,6 @@
 "use client";
 
-import { useRef, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 
 interface User {
   name: string;
@@ -19,6 +19,19 @@ export default function Home() {
   const [result, setResult] = useState<[string, number][]>([]);
   const [actions, setActions] = useState<Action[]>([]);
   const [buyIn, setBuyIn] = useState<number>(50);
+
+  useEffect(() => {
+    if (!inputRef.current) {
+      return;
+    }
+
+    const storedValue = localStorage.getItem("storedValue");
+
+    if (storedValue) {
+      inputRef.current.value = storedValue;
+    }
+  }, []);
+
   const getBuyInValue = () => {
     if (!buyInRef.current) {
       return;
@@ -36,6 +49,7 @@ export default function Home() {
     const obj: Record<string, number> = {};
 
     const input = inputRef.current.value;
+    localStorage.setItem("storedValue", input);
     const lines = input.split("\n").filter(Boolean);
 
     lines.forEach((line) => {
@@ -78,6 +92,12 @@ export default function Home() {
 
       return sortedObj;
     });
+
+    const resultDiv = document.getElementById("result");
+
+    if (resultDiv) {
+      resultDiv.scrollIntoView({ behavior: "smooth" });
+    }
   };
 
   const generateResult = (r: [string, number][]) => {
@@ -135,8 +155,8 @@ export default function Home() {
   };
 
   return (
-    <div className="flex flex-col justify-center items-center w-full h-full mt-16">
-      <div>
+    <div className="flex flex-col justify-center items-center w-full h-full mt-4 sm:mt-16 px-2 sm:px-0">
+      <div className="order-1">
         <input
           ref={buyInRef}
           name="buyIn"
@@ -148,15 +168,15 @@ export default function Home() {
           Confirm
         </button>
       </div>
-      <div className="text-center my-4 text-lg">
+      <div className="text-center my-4 text-lg order-2">
         Default buy in is <b>{buyIn}</b>
       </div>
-      <div className="flex flex-row justify-evenly w-full">
+      <div className="flex flex-col sm:flex-row justify-evenly w-full order-5">
         <div>
           <p className="text-lg font-medium text-center mb-4">Transactions</p>
           <textarea
             ref={inputRef}
-            className="border border-gray-500 w-[400px] min-h-[600px] p-4 placeholder-slate-400"
+            className="border border-gray-500 w-full md:w-[400px] min-h-[600px] p-4 placeholder-slate-400"
             rows={inputRef.current?.value ? undefined : 5}
             placeholder={`debitor creditor money(optional, default = 50)
 
@@ -174,9 +194,9 @@ jack david *2
 `}
           ></textarea>
         </div>
-        <div>
+        <div id="result">
           <p className="text-lg font-medium text-center mb-4">Result</p>
-          <div className="border border-gray-500 w-[400px] min-h-[600px] p-4">
+          <div className="border border-gray-500 w-full sm:w-[400px] min-h-[600px] p-4">
             {result.map(([name, money]) => {
               return (
                 <div className="flex flex-row justify-between" key={name}>
@@ -189,7 +209,7 @@ jack david *2
         </div>
         <div>
           <p className="text-lg font-medium text-center mb-4">Actions</p>
-          <div className="border border-gray-500 w-[400px] min-h-[600px] p-4">
+          <div className="border border-gray-500 w-full sm:w-[400px] min-h-[600px] p-4">
             {actions.map(({ debitor, creditor, money }) => {
               return (
                 <div className="flex flex-row justify-between" key={`${debitor}${creditor}`}>
@@ -204,10 +224,10 @@ jack david *2
           </div>
         </div>
       </div>
-      <div className="my-4 text-lg h-5">
+      <div className="my-4 text-lg h-5 order-6">
         {result.length ? `There are ${result.length} players` : null}
       </div>
-      <div className="flex justify-evenly w-1/2 mt-6">
+      <div className="flex sm:justify-evenly w-full sm:w-1/2 mt-6 order-4 sm:order-last justify-between">
         <button
           className="py-4 px-8 text-lg border rounded border-gray-500"
           onClick={calculateMoney}
@@ -219,6 +239,7 @@ jack david *2
           onClick={() => {
             setResult([]);
             setActions([]);
+            localStorage.setItem("storedValue", "");
             inputRef.current!.value = "";
           }}
         >
