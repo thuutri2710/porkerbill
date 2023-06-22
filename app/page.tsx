@@ -15,6 +15,7 @@ export default function Home() {
     const value = Number(buyInRef.current.value);
     setBuyIn(value);
   };
+
   const calculateMoney = () => {
     if (!inputRef.current) {
       return;
@@ -26,11 +27,23 @@ export default function Home() {
     const lines = input.split("\n").filter(Boolean);
 
     lines.forEach((line) => {
-      const [debtor, creditor, money = 50] = line.split(" ");
-      const parsedMoney = Number(money);
+      const [debtor, creditor, money = "50"] = line.split(" ");
+      let times = 0;
+      let parsedMoney = 0;
+      if (money.startsWith("*")) {
+        times = Number(money.split("*")?.[1]);
+
+        if (isNaN(times)) {
+          alert("Invalid transaction");
+        }
+
+        parsedMoney = buyIn * times;
+      } else {
+        parsedMoney = Number(money);
+      }
 
       if (isNaN(parsedMoney)) {
-        alert("There's invalid transaction");
+        alert("Invalid transaction");
 
         return;
       }
@@ -49,7 +62,6 @@ export default function Home() {
 
     setResult(obj);
   };
-  console.log(inputRef.current?.value);
 
   return (
     <div className="flex flex-col justify-center items-center w-full h-full mt-16">
@@ -76,11 +88,18 @@ export default function Home() {
             className="border border-gray-500 w-[500px] min-h-[600px] p-4 placeholder-slate-400"
             rows={inputRef.current?.value ? undefined : 5}
             placeholder={`debitor creditor money(optional, default = 50)
+
+/*
+\*  debitor creditor defaultMoney*times
+*/            
+debitor creditor *times   
+
 e.g: 
 
 jack rose
 david jack 40
 rose jack 30
+jack david *2
 `}
           ></textarea>
         </div>
