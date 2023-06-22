@@ -1,11 +1,23 @@
 "use client";
 
-import { use, useRef, useState } from "react";
+import { useRef, useState } from "react";
+
+interface User {
+  name: string;
+  money: number;
+}
+
+interface Action {
+  debitor: string;
+  creditor: string;
+  money: number;
+}
 
 export default function Home() {
   const inputRef = useRef<HTMLTextAreaElement>(null);
   const buyInRef = useRef<HTMLInputElement>(null);
-  const [result, setResult] = useState<Record<string, number>>({});
+  const [result, setResult] = useState<[string, number][]>([]);
+  const [actions, setActions] = useState<Action[]>([]);
   const [buyIn, setBuyIn] = useState<number>(50);
   const getBuyInValue = () => {
     if (!buyInRef.current) {
@@ -60,7 +72,66 @@ export default function Home() {
       obj[creditor] += parsedMoney;
     });
 
-    setResult(obj);
+    setResult(() => {
+      const sortedObj = Object.entries(obj).sort((a, b) => b[1] - a[1]);
+      generateResult(sortedObj);
+
+      return sortedObj;
+    });
+  };
+
+  const generateResult = (r: [string, number][]) => {
+    const debitors: User[] = [];
+    const creditors: User[] = [];
+
+    r.forEach(([name, money]) => {
+      if (money > 0) {
+        creditors.push({ name, money });
+      }
+      if (money < 0) {
+        debitors.push({ name, money });
+      }
+    });
+
+    creditors.sort((a, b) => b.money - a.money);
+    debitors.sort((a, b) => a.money - b.money);
+
+    let debitorIndex = 0;
+    let creditorIndex = 0;
+    const listAction = [];
+
+    while (debitorIndex < debitors.length && creditorIndex < creditors.length) {
+      const debitor = debitors[debitorIndex];
+      const creditor = creditors[creditorIndex];
+      const action: Action = {} as Action;
+
+      const money = Math.min(Math.abs(debitor.money), Math.abs(creditor.money));
+
+      debitor.money += money;
+      creditor.money -= money;
+
+      if (debitor.money === 0) {
+        debitorIndex++;
+      }
+
+      if (creditor.money === 0) {
+        creditorIndex++;
+      }
+
+      action.debitor = debitor.name;
+      action.creditor = creditor.name;
+      action.money = money;
+      listAction.push(action);
+    }
+
+    listAction.sort((a, b) => {
+      if (a.debitor === b.debitor) {
+        return b.money - a.money;
+      }
+
+      return a.debitor.localeCompare(b.debitor);
+    });
+    setActions([...listAction]);
   };
 
   return (
@@ -85,7 +156,7 @@ export default function Home() {
           <p className="text-lg font-medium text-center mb-4">Transactions</p>
           <textarea
             ref={inputRef}
-            className="border border-gray-500 w-[500px] min-h-[600px] p-4 placeholder-slate-400"
+            className="border border-gray-500 w-[400px] min-h-[600px] p-4 placeholder-slate-400"
             rows={inputRef.current?.value ? undefined : 5}
             placeholder={`debitor creditor money(optional, default = 50)
 
@@ -105,8 +176,8 @@ jack david *2
         </div>
         <div>
           <p className="text-lg font-medium text-center mb-4">Result</p>
-          <div className="border border-gray-500 w-[500px] min-h-[600px] p-4">
-            {Object.entries(result).map(([name, money]) => {
+          <div className="border border-gray-500 w-[400px] min-h-[600px] p-4">
+            {result.map(([name, money]) => {
               return (
                 <div className="flex flex-row justify-between" key={name}>
                   <span>{name}</span>
@@ -116,8 +187,27 @@ jack david *2
             })}
           </div>
         </div>
+        <div>
+          <p className="text-lg font-medium text-center mb-4">Actions</p>
+          <div className="border border-gray-500 w-[400px] min-h-[600px] p-4">
+            {actions.map(({ debitor, creditor, money }) => {
+              return (
+                <div className="flex flex-row justify-between" key={`${debitor}${creditor}`}>
+                  <span className="w-10">{debitor}</span>
+                  <span>→</span>
+                  <span className="w-10">{creditor}</span>
+                  <span>=</span>
+                  <span className="w-10">{money}</span>
+                </div>
+              );
+            })}
+          </div>
+        </div>
       </div>
-      <div className="flex justify-evenly w-1/2 mt-10">
+      <div className="my-4 text-lg h-5">
+        {result.length ? `There are ${result.length} players` : null}
+      </div>
+      <div className="flex justify-evenly w-1/2 mt-6">
         <button
           className="py-4 px-8 text-lg border rounded border-gray-500"
           onClick={calculateMoney}
@@ -127,7 +217,8 @@ jack david *2
         <button
           className="py-4 px-8 text-lg border rounded border-gray-500"
           onClick={() => {
-            setResult({});
+            setResult([]);
+            setActions([]);
             inputRef.current!.value = "";
           }}
         >
