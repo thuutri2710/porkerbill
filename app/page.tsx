@@ -1,7 +1,7 @@
 "use client";
 
 import { useEffect, useLayoutEffect, useRef, useState } from "react";
-import { toPng } from "html-to-image";
+import { toBlob } from "html-to-image";
 interface User {
   name: string;
   money: number;
@@ -170,10 +170,22 @@ export default function Home() {
           return;
         }
 
-        const dataUrl = await toPng(node);
+        const blob = await toBlob(node);
 
-        const item = new ClipboardItem({ "image/png": dataUrl });
-        await navigator.clipboard.write([item]);
+        navigator.clipboard.write([
+          new ClipboardItem({
+            "image/png": new Promise(async (resolve, reject) => {
+              try {
+                resolve(new Blob([blob!], { type: "image/png" }));
+              } catch (err) {
+                reject(err);
+              }
+            }),
+          }),
+        ]);
+        console.log(blob);
+        // const item = new ClipboardItem({ "image/png": dataUrl });
+        // await navigator.clipboard.write([item]);
         console.log("Fetched image copied.");
       } catch (error) {
         console.error("oops, something went wrong!", error);
@@ -268,7 +280,7 @@ jack david *2
           className="py-4 px-8 text-lg border rounded border-gray-500"
           onClick={calculateMoney}
         >
-          Calculate
+          Calculate & copy result
         </button>
         <button
           className="py-4 px-8 text-lg border rounded border-gray-500"
