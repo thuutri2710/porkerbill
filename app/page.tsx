@@ -161,6 +161,23 @@ export default function Home() {
     setActions([...listAction]);
   };
 
+  const copyResultAsText = () => {
+    const exportedText = actions
+      .map(({ debitor, creditor, money }) => `${debitor} ${creditor} ${money}`)
+      .join("\n");
+    navigator.clipboard.write([
+      new ClipboardItem({
+        "text/plain": new Promise(async (resolve, reject) => {
+          try {
+            resolve(new Blob([exportedText], { type: "text/plain" }));
+          } catch (err) {
+            reject(err);
+          }
+        }),
+      }),
+    ]);
+  };
+
   useEffect(() => {
     const copyImageToClipboard = async () => {
       try {
@@ -196,7 +213,7 @@ export default function Home() {
   }, [actions]);
 
   return (
-    <div className="flex flex-col justify-center items-center w-full h-full mt-4 sm:mt-16 px-2 sm:px-0">
+    <div className="flex flex-col justify-center items-center w-full overflow-scroll h-full mt-4 md:mt-8 px-2 md:px-0">
       <div className="order-1">
         <input
           ref={buyInRef}
@@ -212,7 +229,7 @@ export default function Home() {
       <div className="text-center my-4 text-lg order-2">
         Default buy in is <b>{buyIn}</b>
       </div>
-      <div className="flex flex-col sm:flex-row justify-evenly w-full order-5">
+      <div className="flex flex-col md:flex-row justify-evenly w-full order-5">
         <div>
           <p className="text-lg font-medium text-center mb-4">Transactions</p>
           <textarea
@@ -221,7 +238,7 @@ export default function Home() {
               localStorage.setItem("storedValue", input);
             }}
             ref={inputRef}
-            className="border border-gray-500 w-full md:w-[400px] min-h-[600px] p-4 placeholder-slate-400"
+            className="border border-gray-500 w-full md:w-[220px] lg:w-[350px] min-h-[600px] p-4 placeholder-slate-400"
             rows={inputRef.current?.value ? undefined : 5}
             placeholder={`debitor creditor money(optional, default = 50)
 
@@ -241,7 +258,7 @@ jack david *2
         </div>
         <div id="result">
           <p className="text-lg font-medium text-center mb-4">Result</p>
-          <div className="border border-gray-500 w-full sm:w-[400px] min-h-[600px] p-4">
+          <div className="border border-gray-500 w-full md:w-[220px] lg:w-[350px] min-h-[600px] p-4">
             {result.map(([name, money]) => {
               return (
                 <div className="flex flex-row justify-between" key={name}>
@@ -255,7 +272,7 @@ jack david *2
         <div>
           <p className="text-lg font-medium text-center mb-4">Actions</p>
           <div
-            className="border border-gray-500 w-full sm:w-[400px] min-h-[600px] p-4 bg-white"
+            className="border border-gray-500 w-full md:w-[220px] lg:w-[350px] min-h-[600px] p-4 bg-white"
             id="actions"
           >
             {actions.map(({ debitor, creditor, money }) => {
@@ -275,12 +292,18 @@ jack david *2
       <div className="my-4 text-lg h-5 order-6">
         {result.length ? `There are ${result.length} players` : null}
       </div>
-      <div className="flex sm:justify-evenly w-full sm:w-1/2 mt-6 order-4 sm:order-last justify-between">
+      <div className="flex md:justify-evenly w-full md:w-3/4 mt-6 order-4 md:order-last justify-between mb-4 flex-col md:flex-row">
         <button
           className="py-4 px-8 text-lg border rounded border-gray-500"
           onClick={calculateMoney}
         >
           Calculate & copy result
+        </button>
+        <button
+          className="py-4 px-8 text-lg border rounded border-gray-500 my-2 md:my-0 md:mx-10"
+          onClick={copyResultAsText}
+        >
+          Copy result as text
         </button>
         <button
           className="py-4 px-8 text-lg border rounded border-gray-500"
