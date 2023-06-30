@@ -170,7 +170,9 @@ export default function Home() {
       new ClipboardItem({
         "text/plain": new Promise(async (resolve, reject) => {
           try {
-            resolve(new Blob([`/simplepoll ${exportedText} no-preview`], { type: "text/plain" }));
+            resolve(
+              new Blob([`/simplepoll "payment" ${exportedText} no-preview`], { type: "text/plain" })
+            );
           } catch (err) {
             reject(err);
           }
@@ -182,7 +184,7 @@ export default function Home() {
   useEffect(() => {
     const copyImageToClipboard = async () => {
       try {
-        const node = document.getElementById("actions");
+        const node = document.getElementById("finalResult");
 
         if (!node || actions.length === 0) {
           return;
@@ -214,7 +216,7 @@ export default function Home() {
   }, [actions]);
 
   return (
-    <div className="flex flex-col justify-center items-center w-full overflow-scroll h-full mt-4 md:mt-8 px-2 md:px-0">
+    <div className="flex flex-col justify-center items-center w-full h-full mt-4 md:mt-8 px-2 md:px-0">
       <div className="order-1">
         <input
           ref={buyInRef}
@@ -230,18 +232,19 @@ export default function Home() {
       <div className="text-center my-4 text-lg order-2">
         Default buy in is <b>{buyIn}</b>
       </div>
-      <div className="flex flex-col md:flex-row justify-evenly w-full order-5">
-        <div>
-          <p className="text-lg font-medium text-center mb-4">Transactions</p>
-          <textarea
-            onChange={(e) => {
-              const input = e.target.value;
-              localStorage.setItem("storedValue", input);
-            }}
-            ref={inputRef}
-            className="border border-gray-500 w-full md:w-[220px] lg:w-[350px] min-h-[600px] p-4 placeholder-slate-400"
-            rows={inputRef.current?.value ? undefined : 5}
-            placeholder={`debitor creditor money(optional, default = 50)
+      <div className="max-w-[1290px] mx-auto order-5 w-full">
+        <div id="finalResult" className="flex flex-col md:flex-row justify-evenly w-full bg-white">
+          <div>
+            <p className="text-lg font-medium text-center mb-4 bg-white">Transactions</p>
+            <textarea
+              onChange={(e) => {
+                const input = e.target.value;
+                localStorage.setItem("storedValue", input);
+              }}
+              ref={inputRef}
+              className="border border-gray-500 w-full md:w-[220px] lg:w-[350px] min-h-[600px] p-4 placeholder-slate-400"
+              rows={inputRef.current?.value ? undefined : 5}
+              placeholder={`debitor creditor money(optional, default = 50)
 
 /*
 \*  debitor creditor defaultMoney*times
@@ -255,45 +258,46 @@ david jack 40
 rose jack 30
 jack david *2
 `}
-          ></textarea>
-        </div>
-        <div id="result">
-          <p className="text-lg font-medium text-center mb-4">Result</p>
-          <div className="border border-gray-500 w-full md:w-[220px] lg:w-[350px] min-h-[600px] p-4">
-            {result.map(([name, money]) => {
-              return (
-                <div className="flex flex-row justify-between" key={name}>
-                  <span>{name}</span>
-                  <span>{money}</span>
-                </div>
-              );
-            })}
+            ></textarea>
           </div>
-        </div>
-        <div>
-          <p className="text-lg font-medium text-center mb-4">Actions</p>
-          <div
-            className="border border-gray-500 w-full md:w-[220px] lg:w-[350px] min-h-[600px] p-4 bg-white"
-            id="actions"
-          >
-            {actions.map(({ debitor, creditor, money }) => {
-              return (
-                <div className="flex flex-row justify-between" key={`${debitor}${creditor}`}>
-                  <span className="w-10">{debitor}</span>
-                  <span>→</span>
-                  <span className="w-10">{creditor}</span>
-                  <span>=</span>
-                  <span className="w-10">{money}</span>
-                </div>
-              );
-            })}
+          <div id="result">
+            <p className="text-lg font-medium text-center mb-4 bg-white">Result</p>
+            <div className="border border-gray-500 w-full md:w-[220px] lg:w-[350px] min-h-[600px] p-4">
+              {result.map(([name, money]) => {
+                return (
+                  <div className="flex flex-row justify-between" key={name}>
+                    <span>{name}</span>
+                    <span>{money}</span>
+                  </div>
+                );
+              })}
+            </div>
+          </div>
+          <div>
+            <p className="text-lg font-medium text-center mb-4">Actions</p>
+            <div
+              className="border border-gray-500 w-full md:w-[220px] lg:w-[350px] min-h-[600px] p-4 bg-white"
+              id="actions"
+            >
+              {actions.map(({ debitor, creditor, money }) => {
+                return (
+                  <div className="flex flex-row justify-between" key={`${debitor}${creditor}`}>
+                    <span className="w-10">{debitor}</span>
+                    <span>→</span>
+                    <span className="w-10">{creditor}</span>
+                    <span>=</span>
+                    <span className="w-10">{money}</span>
+                  </div>
+                );
+              })}
+            </div>
           </div>
         </div>
       </div>
       <div className="my-4 text-lg h-5 order-6">
         {result.length ? `There are ${result.length} players` : null}
       </div>
-      <div className="flex md:justify-evenly w-full md:w-3/4 mt-6 order-4 md:order-last justify-between mb-4 flex-col md:flex-row">
+      <div className="flex md:justify-evenly w-full md:w-3/4 mx-auto max-w-[1280px] mt-6 order-4 md:order-last justify-between mb-4 flex-col md:flex-row">
         <button
           className="py-4 px-8 text-lg border rounded border-gray-500"
           onClick={calculateMoney}
