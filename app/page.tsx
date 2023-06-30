@@ -163,13 +163,14 @@ export default function Home() {
 
   const copyResultAsText = () => {
     const exportedText = actions
-      .map(({ debitor, creditor, money }) => `${debitor} ${creditor} ${money}`)
+      .map(({ debitor, creditor, money }) => `"${debitor} ${creditor} ${money}"`)
       .join("\n");
+
     navigator.clipboard.write([
       new ClipboardItem({
         "text/plain": new Promise(async (resolve, reject) => {
           try {
-            resolve(new Blob([exportedText], { type: "text/plain" }));
+            resolve(new Blob([`/simplepoll ${exportedText} no-preview`], { type: "text/plain" }));
           } catch (err) {
             reject(err);
           }
@@ -303,7 +304,7 @@ jack david *2
           className="py-4 px-8 text-lg border rounded border-gray-500 my-2 md:my-0 md:mx-10"
           onClick={copyResultAsText}
         >
-          Copy result as text
+          Parse to slack command
         </button>
         <button
           className="py-4 px-8 text-lg border rounded border-gray-500"
