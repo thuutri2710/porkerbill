@@ -18,7 +18,7 @@ export default function Home() {
   const buyInRef = useRef<HTMLInputElement>(null);
   const [result, setResult] = useState<[string, number][]>([]);
   const [actions, setActions] = useState<Action[]>([]);
-  const [buyIn, setBuyIn] = useState<number>(50);
+  const [buyIn, setBuyIn] = useState<number>(100);
 
   useLayoutEffect(() => {
     if (!inputRef.current) {
