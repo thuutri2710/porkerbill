@@ -52,7 +52,7 @@ export default function Home() {
     const lines = input.split("\n").filter(Boolean);
 
     lines.forEach((line) => {
-      const [d, c, m = "50"] = line.split(" ");
+      const [d, c, m = "100"] = line.split(" ");
       const debitor = d.trim();
       const creditor = c.trim();
       const money = m.trim();
@@ -244,7 +244,7 @@ export default function Home() {
               ref={inputRef}
               className="border border-gray-500 w-full md:w-[220px] lg:w-[350px] min-h-[600px] p-4 placeholder-slate-400"
               rows={inputRef.current?.value ? undefined : 5}
-              placeholder={`debitor creditor money(optional, default = 50)
+              placeholder={`debitor creditor money(optional, default = 100)
 
 /*
 \*  debitor creditor defaultMoney*times
