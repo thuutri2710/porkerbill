@@ -26,6 +26,7 @@ export default function Home() {
     console.log(t);
     return JSON.parse(t || '["bank"]');
   });
+  const isFirstRender = useRef(true);
   const [transactions, setTransactions] = useState<
     { debitor: string; creditor: string; money: number }[]
   >(() => {
@@ -190,6 +191,12 @@ export default function Home() {
   }, [actions]);
 
   useEffect(() => {
+    if (isFirstRender.current) {
+      isFirstRender.current = false;
+
+      return;
+    }
+
     calculateMoney();
     localStorage.setItem("storedValueV2", JSON.stringify(transactions));
   }, [transactions]);

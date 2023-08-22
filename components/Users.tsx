@@ -33,8 +33,8 @@ const Users = ({ users = [], setUsers = (u: any) => void u, setTransactions }: U
   };
 
   return (
-    <div className="mb-6 w-[800px] px-6">
-      <div className="flex flex-row justify-between">
+    <div className="mb-6 w-full md:w-[800px] px-1 md:px-6">
+      <div className="flex flex-col md:flex-row justify-between">
         <button
           onClick={() => {
             setIsShowConfig((p) => !p);
@@ -45,8 +45,9 @@ const Users = ({ users = [], setUsers = (u: any) => void u, setTransactions }: U
         </button>
         {isShowConfig && (
           <>
-            <div className="order-1">
+            <div className="mb-4 md:mb-0">
               <input
+                min={0}
                 ref={buyInRef}
                 name="buyIn"
                 type="number"
@@ -58,6 +59,7 @@ const Users = ({ users = [], setUsers = (u: any) => void u, setTransactions }: U
               </button>
             </div>
             <form
+              className="mb-4 md:mb-0"
               onSubmit={(e) => {
                 e.preventDefault();
                 const form = e.target as HTMLFormElement;
@@ -86,6 +88,8 @@ const Users = ({ users = [], setUsers = (u: any) => void u, setTransactions }: U
           </>
         )}
       </div>
+
+      <hr className="my-2" />
 
       {users.length > 0 && (
         <div className="flex flex-wrap gap-4 border border-solid border-black p-4">
@@ -139,7 +143,7 @@ const Users = ({ users = [], setUsers = (u: any) => void u, setTransactions }: U
           })}
         </div>
       )}
-      <div className="mt-4 flex flex-row gap-8 justify-between">
+      <div className="mt-4 flex flex-row gap-4 md:gap-8 justify-between">
         <button
           className="px-4 py-2 border mb-4 border-solid border-black w-[250px]"
           disabled={!debitor || !creditor}
@@ -154,10 +158,10 @@ const Users = ({ users = [], setUsers = (u: any) => void u, setTransactions }: U
         >
           Add default transaction <b>{defaultBuyIn}</b>
         </button>
-        <form>
+        <form className="border-l pl-4 md:pl-0 border-0">
           <button
             type="submit"
-            className="px-4 py-2 border border-solid border-black w-[215px]"
+            className="px-4 mb-4 md:mb-0 py-2 border border-solid border-black w-[215px]"
             disabled={!debitor || !creditor || !moneyOfTransactionInputRef?.current?.value}
             onClick={(e) => {
               e.preventDefault();
@@ -177,10 +181,11 @@ const Users = ({ users = [], setUsers = (u: any) => void u, setTransactions }: U
             Add transaction with
           </button>
           <input
+            min={0}
             ref={moneyOfTransactionInputRef}
             type="number"
             name="transaction"
-            className="px-4 py-2 border ml-4 border-solid border-black w-[100px]"
+            className="px-4 py-2 border md:ml-4 border-solid border-black w-[100px]"
           />
         </form>
       </div>
