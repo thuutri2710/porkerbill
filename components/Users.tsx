@@ -32,18 +32,50 @@ const Users = ({ users = [], setUsers = (u: any) => void u, setTransactions }: U
     setDefaultBuyIn(value);
   };
 
-  console.log(moneyOfTransactionInputRef.current?.value);
+  const copySharedLink = () => {
+    const storedTransactions = localStorage.getItem("transactionsV2") || "";
+    const storedUsers = localStorage.getItem("users") || "";
+
+    const sharedUrl = `${window.location.origin}/v2?transactions=${
+      storedTransactions.length ? JSON.stringify(storedTransactions) : ""
+    }&users=${storedUsers.length ? JSON.stringify(storedUsers) : ""}`;
+
+    navigator.clipboard.write([
+      new ClipboardItem({
+        "text/plain": new Promise(async (resolve, reject) => {
+          try {
+            resolve(
+              new Blob([`${encodeURI(sharedUrl)}`], {
+                type: "text/plain",
+              })
+            );
+          } catch (err) {
+            reject(err);
+          }
+        }),
+      }),
+    ]);
+  };
+
   return (
     <div className="mb-6 w-full md:w-[800px] px-1 md:px-6">
       <div className="flex flex-col md:flex-row justify-between">
-        <button
-          onClick={() => {
-            setIsShowConfig((p) => !p);
-          }}
-          className="grow-0 p-2 border border-solid border-black h-10 w-28 mb-4"
-        >
-          {isShowConfig ? "Hide" : "Show"}
-        </button>
+        <div>
+          <button
+            onClick={() => {
+              setIsShowConfig((p) => !p);
+            }}
+            className="grow-0 p-2 border border-solid border-black h-10 w-28 mb-4 mr-4"
+          >
+            {isShowConfig ? "Hide" : "Show"}
+          </button>
+          <button
+            className="grow-0 p-2 border border-solid border-black h-10 w-40 bg-blue-500 text-white mb-4 md:ml-0 ml-4"
+            onClick={copySharedLink}
+          >
+            Copy shared link
+          </button>
+        </div>
         {isShowConfig && (
           <>
             <div className="mb-4 md:mb-0">
@@ -55,7 +87,10 @@ const Users = ({ users = [], setUsers = (u: any) => void u, setTransactions }: U
                 className="border border-gray-500 w-40 h-10 p-2"
                 placeholder="Default buy-in"
               />
-              <button className="border border-gray-500 px-4 py-2 ml-4" onClick={getBuyInValue}>
+              <button
+                className="border border-gray-500 px-4 py-2 ml-4 md:ml-0 md:mt-4"
+                onClick={getBuyInValue}
+              >
                 Confirm
               </button>
             </div>
@@ -82,7 +117,7 @@ const Users = ({ users = [], setUsers = (u: any) => void u, setTransactions }: U
                 name="user"
                 className="px-4 py-2 border-black border-solid border w-[200px] mr-2"
               />
-              <button type="submit" className="px-4 py-2 border border-solid border-black">
+              <button type="submit" className="px-4 py-2 border border-solid border-black md:mt-4">
                 Add user
               </button>
             </form>
@@ -108,7 +143,7 @@ const Users = ({ users = [], setUsers = (u: any) => void u, setTransactions }: U
             return (
               <div
                 className={clsx(
-                  "border-2 border-solid border-black p-5",
+                  "border-2 border-solid border-black p-5 cursor-pointer",
                   debitor === user && "bg-red-200",
                   creditor === user && "bg-green-200"
                 )}

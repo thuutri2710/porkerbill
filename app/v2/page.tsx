@@ -1,9 +1,10 @@
 "use client";
 
-import { useEffect, useLayoutEffect, useRef, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { toBlob } from "html-to-image";
 import clsx from "clsx";
 import Users from "@/components/Users";
+import { useRouter, useSearchParams } from "next/navigation";
 
 interface User {
   name: string;
@@ -17,23 +18,46 @@ interface Action {
 }
 
 export default function Home() {
+  const router = useRouter();
+  const queryParams = useSearchParams();
   const [result, setResult] = useState<[string, number][]>([]);
   const [actions, setActions] = useState<Action[]>([]);
   const [users, setUsers] = useState<string[]>(() => {
-    const localStorage = typeof window !== "undefined" ? window.localStorage : null;
-    const t = localStorage ? localStorage.getItem("users") : "";
+    let persistedUsers: string | null = null;
+    const href = typeof window !== "undefined" ? window.location.href : "";
+    const sharedUsers = href
+      ? new URL(decodeURI(encodeURI(href))).searchParams.get("users") || ""
+      : "";
 
-    console.log(t);
-    return JSON.parse(t || '["bank"]');
+    if (!sharedUsers) {
+      const localStorage = typeof window !== "undefined" ? window.localStorage : null;
+      persistedUsers = localStorage ? localStorage.getItem("users") : "";
+    } else {
+      persistedUsers = JSON.parse(sharedUsers);
+      localStorage.setItem("users", persistedUsers || "");
+    }
+
+    return JSON.parse(persistedUsers || '["bank"]');
   });
   const isFirstRender = useRef(true);
   const [transactions, setTransactions] = useState<
     { debitor: string; creditor: string; money: number }[]
   >(() => {
-    const localStorage = typeof window !== "undefined" ? window.localStorage : null;
-    const t = localStorage ? localStorage.getItem("storedValueV2") : "";
+    let persistedTransactions: string | null = null;
+    const href = typeof window !== "undefined" ? window.location.href : "";
+    const sharedTransactions = href
+      ? new URL(decodeURI(encodeURI(href))).searchParams.get("transactions") || ""
+      : "";
 
-    return JSON.parse(t || "[]");
+    if (!sharedTransactions) {
+      const localStorage = typeof window !== "undefined" ? window.localStorage : null;
+      persistedTransactions = localStorage ? localStorage.getItem("transactionsV2") : "";
+    } else {
+      persistedTransactions = JSON.parse(sharedTransactions);
+      localStorage.setItem("transactionsV2", persistedTransactions || "");
+    }
+
+    return JSON.parse(persistedTransactions || "[]");
   });
 
   const calculateMoney = (shouldScroll: boolean) => {
@@ -178,7 +202,6 @@ export default function Home() {
             }),
           }),
         ]);
-        console.log(blob);
         // const item = new ClipboardItem({ "image/png": dataUrl });
         // await navigator.clipboard.write([item]);
         console.log("Fetched image copied.");
@@ -198,8 +221,14 @@ export default function Home() {
     }
 
     calculateMoney(false);
-    localStorage.setItem("storedValueV2", JSON.stringify(transactions));
+    localStorage.setItem("transactionsV2", JSON.stringify(transactions));
   }, [transactions]);
+
+  useEffect(() => {
+    if (queryParams.get("transactions") || queryParams.get("users")) {
+      router.push("/v2", { shallow: true });
+    }
+  }, []);
 
   return (
     <div className="flex flex-col justify-center items-center w-full h-full mt-4 md:mt-8 px-2 md:px-0">
@@ -294,7 +323,7 @@ export default function Home() {
             setActions([]);
             setTransactions([]);
             setUsers([]);
-            localStorage.setItem("storedValueV2", "");
+            localStorage.setItem("transactionsV2", "");
             localStorage.setItem("users", JSON.stringify(["bank"]));
           }}
         >
