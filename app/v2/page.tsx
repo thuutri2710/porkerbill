@@ -36,7 +36,7 @@ export default function Home() {
     return JSON.parse(t || "[]");
   });
 
-  const calculateMoney = () => {
+  const calculateMoney = (shouldScroll: boolean) => {
     const obj: Record<string, number> = {};
 
     transactions.forEach((line) => {
@@ -77,7 +77,7 @@ export default function Home() {
 
     const resultDiv = document.getElementById("result");
 
-    if (resultDiv) {
+    if (resultDiv && shouldScroll) {
       resultDiv.scrollIntoView({ behavior: "smooth" });
     }
   };
@@ -197,7 +197,7 @@ export default function Home() {
       return;
     }
 
-    calculateMoney();
+    calculateMoney(false);
     localStorage.setItem("storedValueV2", JSON.stringify(transactions));
   }, [transactions]);
 
@@ -277,7 +277,7 @@ export default function Home() {
       <div className="flex md:justify-evenly w-full md:w-3/4 mx-auto max-w-[1280px] mt-6 order-4 md:order-last justify-between mb-4 flex-col md:flex-row">
         <button
           className="py-4 px-8 text-lg border rounded border-gray-500"
-          onClick={calculateMoney}
+          onClick={() => calculateMoney(true)}
         >
           Calculate & copy result
         </button>

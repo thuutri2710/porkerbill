@@ -32,6 +32,7 @@ const Users = ({ users = [], setUsers = (u: any) => void u, setTransactions }: U
     setDefaultBuyIn(value);
   };
 
+  console.log(moneyOfTransactionInputRef.current?.value);
   return (
     <div className="mb-6 w-full md:w-[800px] px-1 md:px-6">
       <div className="flex flex-col md:flex-row justify-between">
@@ -162,10 +163,13 @@ const Users = ({ users = [], setUsers = (u: any) => void u, setTransactions }: U
           <button
             type="submit"
             className="px-4 mb-4 md:mb-0 py-2 border border-solid border-black w-[215px]"
-            disabled={!debitor || !creditor || !moneyOfTransactionInputRef?.current?.value}
+            disabled={!debitor || !creditor}
             onClick={(e) => {
               e.preventDefault();
               const money = moneyOfTransactionInputRef.current?.value || 0;
+              if (!money) {
+                return;
+              }
               setTransactions((transactions) => {
                 return [...transactions, { debitor, creditor, money: +money } as Transaction];
               });
