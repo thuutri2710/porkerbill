@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useRef, useState } from "react";
+import { useEffect, useState } from "react";
 import { toBlob } from "html-to-image";
 import clsx from "clsx";
 import Users from "@/components/Users";
@@ -39,7 +39,6 @@ export default function Home() {
 
     return JSON.parse(persistedUsers || '["bank"]');
   });
-  const isFirstRender = useRef(true);
   const [transactions, setTransactions] = useState<
     { debitor: string; creditor: string; money: number }[]
   >(() => {
@@ -60,49 +59,61 @@ export default function Home() {
     return JSON.parse(persistedTransactions || "[]");
   });
 
+  const debitTransactions = transactions.reduce((acc, curr) => {
+    acc[curr.debitor] = (acc[curr.debitor] || 0) - curr.money;
+
+    return acc;
+  }, {} as Record<string, number>);
+
+  const overBuyInUsers = Object.entries(debitTransactions)
+    .filter(([d, m]) => m <= -200)
+    .map(([name]) => name);
+
   const calculateMoney = (shouldScroll: boolean) => {
     const obj: Record<string, number> = {};
+    try {
+      transactions.forEach((line) => {
+        const { debitor, creditor, money } = line;
 
-    transactions.forEach((line) => {
-      const { debitor, creditor, money } = line;
+        let parsedMoney = 0;
+        parsedMoney = Number(money);
 
-      let times = 0;
-      let parsedMoney = 0;
-      parsedMoney = Number(money);
+        if (isNaN(parsedMoney)) {
+          alert("Invalid transaction");
 
-      if (isNaN(parsedMoney)) {
-        alert("Invalid transaction");
+          return;
+        }
 
-        return;
+        if (!parsedMoney) {
+          return;
+        }
+
+        if (obj[debitor] === undefined) {
+          obj[debitor] = 0;
+        }
+
+        if (obj[creditor] === undefined) {
+          obj[creditor] = 0;
+        }
+
+        obj[debitor] -= parsedMoney;
+        obj[creditor] += parsedMoney;
+      });
+
+      setResult(() => {
+        const sortedObj = Object.entries(obj).sort((a, b) => b[1] - a[1]);
+        generateResult(sortedObj);
+
+        return sortedObj;
+      });
+
+      const resultDiv = document.getElementById("result");
+
+      if (resultDiv && shouldScroll) {
+        resultDiv.scrollIntoView({ behavior: "smooth" });
       }
-
-      if (!parsedMoney) {
-        return;
-      }
-
-      if (obj[debitor] === undefined) {
-        obj[debitor] = 0;
-      }
-
-      if (obj[creditor] === undefined) {
-        obj[creditor] = 0;
-      }
-
-      obj[debitor] -= parsedMoney;
-      obj[creditor] += parsedMoney;
-    });
-
-    setResult(() => {
-      const sortedObj = Object.entries(obj).sort((a, b) => b[1] - a[1]);
-      generateResult(sortedObj);
-
-      return sortedObj;
-    });
-
-    const resultDiv = document.getElementById("result");
-
-    if (resultDiv && shouldScroll) {
-      resultDiv.scrollIntoView({ behavior: "smooth" });
+    } catch (e) {
+      console.log(e);
     }
   };
 
@@ -214,12 +225,6 @@ export default function Home() {
   }, [actions]);
 
   useEffect(() => {
-    if (isFirstRender.current) {
-      isFirstRender.current = false;
-
-      return;
-    }
-
     calculateMoney(false);
     localStorage.setItem("transactionsV2", JSON.stringify(transactions));
   }, [transactions]);
@@ -235,6 +240,7 @@ export default function Home() {
       <Users
         users={users}
         setUsers={setUsers}
+        overBuyInUsers={overBuyInUsers}
         //@ts-ignore
         setTransactions={setTransactions}
       />

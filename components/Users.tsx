@@ -9,11 +9,17 @@ interface Transaction {
 
 interface UsersProps {
   users: string[];
+  overBuyInUsers: string[];
   setUsers: (u: string[]) => void;
   setTransactions: (t: Transaction | ((prevState: Transaction[]) => Transaction[])) => void;
 }
 
-const Users = ({ users = [], setUsers = (u: any) => void u, setTransactions }: UsersProps) => {
+const Users = ({
+  overBuyInUsers = [],
+  users = [],
+  setUsers = (u: any) => void u,
+  setTransactions,
+}: UsersProps) => {
   const inputRef = useRef<HTMLInputElement>(null);
   const buyInRef = useRef<HTMLInputElement>(null);
   const [isShowConfig, setIsShowConfig] = useState<boolean>(true);
@@ -134,21 +140,34 @@ const Users = ({ users = [], setUsers = (u: any) => void u, setTransactions }: U
               <span>Debitor</span>
               <span className="w-6 h-6 inline-block ml-2 bg-red-200" />
             </div>
-            <div className="flex flex-row items-center">
+            <div className="flex flex-row items-center mb-4">
               <span>Creditor</span>
               <span className="w-6 h-6 inline-block ml-2 bg-green-200" />
             </div>
+            <div className="flex flex-row items-center">
+              <span>No more buyin</span>
+              <span className="w-6 h-6 inline-block ml-2 border-gray-100 border-4 text-gray-400 underline text-center align-middle pb-1">
+                A
+              </span>
+            </div>
           </div>
           {users.map((user) => {
+            const isOverBuyIn = overBuyInUsers.includes(user);
+
             return (
               <div
                 className={clsx(
-                  "border-2 border-solid border-black p-5 cursor-pointer",
+                  "border-2 border-solid border-black p-5 cursor-pointer flex-grow-0 h-[70px]",
                   debitor === user && "bg-red-200",
-                  creditor === user && "bg-green-200"
+                  creditor === user && "bg-green-200",
+                  isOverBuyIn && "underline cursor-default border-gray-100 border-4 text-gray-400"
                 )}
                 key={user}
                 onClick={() => {
+                  if (debitor && creditor && user !== debitor && user !== creditor) {
+                    return;
+                  }
+
                   if (debitor === user) {
                     setDebitor(undefined);
                     //   setCreditor(undefined);
@@ -159,6 +178,11 @@ const Users = ({ users = [], setUsers = (u: any) => void u, setTransactions }: U
                   }
 
                   if (!debitor && !creditor) {
+                    if (isOverBuyIn) {
+                      alert(`No more buyin for ${user}`);
+
+                      return;
+                    }
                     setDebitor(user);
                   }
                   if (debitor && !creditor) {
