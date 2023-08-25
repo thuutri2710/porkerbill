@@ -117,6 +117,7 @@ export default function Home() {
     }
   };
 
+  console.log(process.env.tinyUrlApi);
   const generateResult = (r: [string, number][]) => {
     const debitors: User[] = [];
     const creditors: User[] = [];
