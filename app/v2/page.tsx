@@ -21,6 +21,7 @@ export default function Home() {
   const router = useRouter();
   const queryParams = useSearchParams();
   const [result, setResult] = useState<[string, number][]>([]);
+  const [limitBuyIn, setLimitBuyIn] = useState(200);
   const [actions, setActions] = useState<Action[]>([]);
   const [users, setUsers] = useState<string[]>(() => {
     let persistedUsers: string | null = null;
@@ -59,7 +60,7 @@ export default function Home() {
     return JSON.parse(persistedTransactions || "[]");
   });
 
-  const overBuyInUsers = result.filter(([, money]) => money <= -200).map(([name]) => name);
+  const overBuyInUsers = result.filter(([, money]) => money <= -limitBuyIn).map(([name]) => name);
 
   const calculateMoney = (shouldScroll: boolean) => {
     const obj: Record<string, number> = {};
@@ -232,7 +233,9 @@ export default function Home() {
       <Users
         users={users}
         setUsers={setUsers}
-        overBuyInUsers={overBuyInUsers}
+        limitBuyIn={limitBuyIn}
+        setLimitBuyIn={setLimitBuyIn}
+        overBuyInUsers={limitBuyIn === -1 ? [] : overBuyInUsers}
         //@ts-ignore
         setTransactions={setTransactions}
       />

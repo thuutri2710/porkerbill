@@ -10,8 +10,10 @@ interface Transaction {
 interface UsersProps {
   users: string[];
   overBuyInUsers: string[];
+  limitBuyIn: number;
   setUsers: (u: string[]) => void;
   setTransactions: (t: Transaction | ((prevState: Transaction[]) => Transaction[])) => void;
+  setLimitBuyIn: (l: number) => void;
 }
 
 const Users = ({
@@ -19,9 +21,12 @@ const Users = ({
   users = [],
   setUsers = (u: any) => void u,
   setTransactions,
+  setLimitBuyIn,
+  limitBuyIn,
 }: UsersProps) => {
   const inputRef = useRef<HTMLInputElement>(null);
   const buyInRef = useRef<HTMLInputElement>(null);
+  const limitBuyInRef = useRef<HTMLInputElement>(null);
   const [isShowConfig, setIsShowConfig] = useState<boolean>(true);
 
   const [defaultBuyIn, setDefaultBuyIn] = useState<number>(100);
@@ -36,6 +41,10 @@ const Users = ({
     }
 
     const value = Number(buyInRef.current.value);
+
+    if (value <= 0) {
+      return;
+    }
     setDefaultBuyIn(value);
   };
 
@@ -86,10 +95,10 @@ const Users = ({
   };
 
   return (
-    <div className="mb-6 w-full md:w-[840px] px-1 md:px-6">
+    <div className="mb-6 w-full md:w-[850px] px-1 md:px-6">
       <div className="flex flex-col md:flex-row justify-between">
         <div>
-          <div className="flex flex-row md:flex-col">
+          <div className="flex flex-row md:flex-col pr-2">
             <button
               onClick={() => {
                 setIsShowConfig((p) => !p);
@@ -131,49 +140,93 @@ const Users = ({
         </div>
         {isShowConfig && (
           <>
-            <div className="mb-4 md:mb-0 md:flex md:items-start">
-              <input
-                min={0}
-                ref={buyInRef}
-                name="buyIn"
-                type="number"
-                className="border border-gray-500 w-40 h-10 p-2"
-                placeholder="Default buy-in"
-              />
-              <button
-                className="border border-gray-500 px-4 py-2 ml-2 md:ml-2 md:mt-0"
-                onClick={getBuyInValue}
+            <div className="md:px-2 md:border-x md:border-gray-200">
+              <div className="mb-4 md:mb-0 md:flex md:items-start">
+                <input
+                  min={1}
+                  ref={buyInRef}
+                  name="buyIn"
+                  type="number"
+                  className="border border-gray-500 w-40 h-10 p-2"
+                  placeholder="Default buy-in"
+                />
+                <button
+                  className="border border-gray-500 px-4 py-2 ml-2 md:ml-2 md:mt-0"
+                  onClick={getBuyInValue}
+                >
+                  Confirm
+                </button>
+              </div>
+              <div className="mb-4 md:mb-0 md:flex md:items-start mt-4">
+                <input
+                  min={1}
+                  ref={limitBuyInRef}
+                  name="limitBuyIn"
+                  type="number"
+                  className="border border-gray-500 w-40 h-10 p-2"
+                  placeholder="Default limit: 200"
+                />
+                <button
+                  className="border border-gray-500 px-4 py-2 ml-2 md:ml-2 md:mt-0"
+                  onClick={() => {
+                    if (limitBuyInRef.current && Number(limitBuyInRef.current.value) > 0) {
+                      setLimitBuyIn(Number(limitBuyInRef.current.value));
+
+                      limitBuyInRef.current.value = "";
+                    }
+                  }}
+                >
+                  Set limit buyin
+                </button>
+              </div>
+            </div>
+            <div className="md:pl-2 pl-0">
+              <form
+                className="md:mb-0 md:flex md:items-start"
+                onSubmit={(e) => {
+                  e.preventDefault();
+                  const form = e.target as HTMLFormElement;
+                  const formData = new FormData(form);
+                  const newUser = (Object.fromEntries(formData.entries()).user as string) || "";
+
+                  if (newUser && !users.includes(newUser)) {
+                    setUsers([...users, newUser]);
+                    localStorage.setItem("users", JSON.stringify([...users, newUser]));
+                  }
+                  if (inputRef.current) {
+                    inputRef.current.value = "";
+                  }
+                }}
               >
-                Confirm
+                <input
+                  ref={inputRef}
+                  placeholder="user name"
+                  name="user"
+                  className="px-4 py-2 border-black border-solid border w-[180px] mr-2"
+                />
+                <button
+                  type="submit"
+                  className="px-4 py-2 border border-solid border-black md:mt-0"
+                >
+                  Add user
+                </button>
+              </form>
+              <button
+                className={clsx(
+                  "px-4 py-2 border border-solid border-black my-4",
+                  limitBuyIn === -1 && "bg-blue-500 text-white"
+                )}
+                onClick={() => {
+                  if (limitBuyIn > 0) {
+                    setLimitBuyIn(-1);
+                  } else {
+                    setLimitBuyIn(Number(limitBuyInRef.current?.value) || 200);
+                  }
+                }}
+              >
+                No limit buyin
               </button>
             </div>
-            <form
-              className="mb-4 md:mb-0 md:flex md:items-start"
-              onSubmit={(e) => {
-                e.preventDefault();
-                const form = e.target as HTMLFormElement;
-                const formData = new FormData(form);
-                const newUser = (Object.fromEntries(formData.entries()).user as string) || "";
-
-                if (newUser && !users.includes(newUser)) {
-                  setUsers([...users, newUser]);
-                  localStorage.setItem("users", JSON.stringify([...users, newUser]));
-                }
-                if (inputRef.current) {
-                  inputRef.current.value = "";
-                }
-              }}
-            >
-              <input
-                ref={inputRef}
-                placeholder="user name"
-                name="user"
-                className="px-4 py-2 border-black border-solid border w-[200px] mr-2"
-              />
-              <button type="submit" className="px-4 py-2 border border-solid border-black md:mt-0">
-                Add user
-              </button>
-            </form>
           </>
         )}
       </div>
@@ -273,7 +326,7 @@ const Users = ({
             onClick={(e) => {
               e.preventDefault();
               const money = moneyOfTransactionInputRef.current?.value || 0;
-              if (!money) {
+              if (!money || Number(money) <= 0) {
                 return;
               }
               setTransactions((transactions) => {
@@ -291,7 +344,7 @@ const Users = ({
             Add transaction with
           </button>
           <input
-            min={0}
+            min={1}
             ref={moneyOfTransactionInputRef}
             type="number"
             name="transaction"
