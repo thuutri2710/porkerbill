@@ -28,6 +28,7 @@ const Users = ({
   const moneyOfTransactionInputRef = useRef<HTMLInputElement>(null);
   const [creditor, setCreditor] = useState<string>();
   const [debitor, setDebitor] = useState<string>();
+  const [isCopyLoading, setIsCopyLoading] = useState<boolean>(false);
 
   const getBuyInValue = () => {
     if (!buyInRef.current) {
@@ -38,53 +39,99 @@ const Users = ({
     setDefaultBuyIn(value);
   };
 
-  const copySharedLink = () => {
+  const copySharedLink = async () => {
+    setIsCopyLoading(true);
     const storedTransactions = localStorage.getItem("transactionsV2") || "";
     const storedUsers = localStorage.getItem("users") || "";
 
-    const sharedUrl = `${window.location.origin}/v2?transactions=${
+    let sharedUrl = `${window.location.origin}/v2?transactions=${
       storedTransactions.length ? JSON.stringify(storedTransactions) : ""
     }&users=${storedUsers.length ? JSON.stringify(storedUsers) : ""}`;
 
-    navigator.clipboard.write([
-      new ClipboardItem({
-        "text/plain": new Promise(async (resolve, reject) => {
-          try {
-            resolve(
-              new Blob([`${encodeURI(sharedUrl)}`], {
-                type: "text/plain",
-              })
-            );
-          } catch (err) {
-            reject(err);
-          }
+    try {
+      const res = await fetch(`https://api.tinyurl.com/create`, {
+        method: "POST",
+        body: JSON.stringify({ url: sharedUrl }),
+        headers: {
+          "Content-Type": "application/json",
+          Authorization: `Bearer ${process.env.tinyUrlApi}`,
+        },
+      });
+      const data = await res.json();
+      const tinyUrl = data?.data?.tiny_url || "";
+
+      sharedUrl = tinyUrl || encodeURI(sharedUrl);
+    } catch (err) {
+      console.log(err);
+    } finally {
+      setIsCopyLoading(false);
+      console.log(sharedUrl);
+
+      navigator.clipboard.write([
+        new ClipboardItem({
+          "text/plain": new Promise(async (resolve, reject) => {
+            try {
+              resolve(
+                new Blob([`${sharedUrl}`], {
+                  type: "text/plain",
+                })
+              );
+            } catch (err) {
+              reject(err);
+            }
+          }),
         }),
-      }),
-    ]);
+      ]);
+    }
   };
 
   return (
-    <div className="mb-6 w-full md:w-[800px] px-1 md:px-6">
+    <div className="mb-6 w-full md:w-[840px] px-1 md:px-6">
       <div className="flex flex-col md:flex-row justify-between">
         <div>
-          <button
-            onClick={() => {
-              setIsShowConfig((p) => !p);
-            }}
-            className="grow-0 p-2 border border-solid border-black h-10 w-28 mb-4 mr-4"
-          >
-            {isShowConfig ? "Hide" : "Show"}
-          </button>
-          <button
-            className="grow-0 p-2 border border-solid border-black h-10 w-40 bg-blue-500 text-white mb-4 md:ml-0 ml-4"
-            onClick={copySharedLink}
-          >
-            Copy shared link
-          </button>
+          <div className="flex flex-row md:flex-col">
+            <button
+              onClick={() => {
+                setIsShowConfig((p) => !p);
+              }}
+              className="grow-0 p-2 border border-solid border-black h-10 w-28 mb-4 mr-4"
+            >
+              {isShowConfig ? "Hide" : "Show"}
+            </button>
+            <button
+              className="flex justify-center items-center grow-0 p-2 border border-solid border-black h-10 w-40 bg-blue-500 text-white mb-4 md:ml-0 ml-4"
+              onClick={copySharedLink}
+            >
+              {isCopyLoading ? (
+                <svg
+                  className="animate-spin -ml-1 mr-3 h-5 w-5 text-white"
+                  xmlns="http://www.w3.org/2000/svg"
+                  fill="none"
+                  viewBox="0 0 24 24"
+                >
+                  <circle
+                    className="opacity-25"
+                    cx="12"
+                    cy="12"
+                    r="10"
+                    stroke="currentColor"
+                    stroke-width="4"
+                  ></circle>
+                  <path
+                    className="opacity-75"
+                    fill="currentColor"
+                    d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"
+                  ></path>
+                </svg>
+              ) : (
+                "Copy shared URL"
+              )}
+            </button>
+          </div>
         </div>
         {isShowConfig && (
           <>
-            <div className="mb-4 md:mb-0">
+            <div className="mb-4 md:mb-0 md:flex md:items-start">
               <input
                 min={0}
                 ref={buyInRef}
@@ -94,14 +141,14 @@ const Users = ({
                 placeholder="Default buy-in"
               />
               <button
-                className="border border-gray-500 px-4 py-2 ml-4 md:ml-0 md:mt-4"
+                className="border border-gray-500 px-4 py-2 ml-2 md:ml-2 md:mt-0"
                 onClick={getBuyInValue}
               >
                 Confirm
               </button>
             </div>
             <form
-              className="mb-4 md:mb-0"
+              className="mb-4 md:mb-0 md:flex md:items-start"
               onSubmit={(e) => {
                 e.preventDefault();
                 const form = e.target as HTMLFormElement;
@@ -123,7 +170,7 @@ const Users = ({
                 name="user"
                 className="px-4 py-2 border-black border-solid border w-[200px] mr-2"
               />
-              <button type="submit" className="px-4 py-2 border border-solid border-black md:mt-4">
+              <button type="submit" className="px-4 py-2 border border-solid border-black md:mt-0">
                 Add user
               </button>
             </form>
