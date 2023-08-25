@@ -59,15 +59,7 @@ export default function Home() {
     return JSON.parse(persistedTransactions || "[]");
   });
 
-  const debitTransactions = transactions.reduce((acc, curr) => {
-    acc[curr.debitor] = (acc[curr.debitor] || 0) - curr.money;
-
-    return acc;
-  }, {} as Record<string, number>);
-
-  const overBuyInUsers = Object.entries(debitTransactions)
-    .filter(([d, m]) => m <= -200)
-    .map(([name]) => name);
+  const overBuyInUsers = result.filter(([, money]) => money <= -200).map(([name]) => name);
 
   const calculateMoney = (shouldScroll: boolean) => {
     const obj: Record<string, number> = {};
