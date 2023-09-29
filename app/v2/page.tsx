@@ -100,7 +100,7 @@ export default function Home() {
         return sortedObj;
       });
 
-      const resultDiv = document.getElementById("result");
+      const resultDiv = document.getElementById("actions");
 
       if (resultDiv && shouldScroll) {
         resultDiv.scrollIntoView({ behavior: "smooth" });
@@ -283,7 +283,7 @@ export default function Home() {
           <div>
             <p className="text-lg font-medium text-center mb-4">Actions</p>
             <div
-              className="border border-gray-500 w-full md:w-[220px] lg:w-[350px] min-h-[600px] p-4 bg-white"
+              className="border border-gray-500 w-full md:w-[220px] lg:w-[350px] min-h-[600px] p-4 bg-white scroll-mt-2"
               id="actions"
             >
               {actions.map(({ debitor, creditor, money }) => {

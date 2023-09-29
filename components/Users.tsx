@@ -74,6 +74,12 @@ const Users = ({
 
     setTransactions(importedTransactions);
     setUsers(players);
+
+    const resultDiv = document.getElementById("actions");
+
+    if (resultDiv) {
+      resultDiv.scrollIntoView({ behavior: "smooth" });
+    }
   };
   const handleOnSubmit = (e: MouseEvent<HTMLButtonElement>) => {
     e.preventDefault();
