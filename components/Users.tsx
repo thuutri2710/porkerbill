@@ -1,4 +1,4 @@
-import { useRef, useState } from "react";
+import { ChangeEvent, useRef, useState, MouseEvent } from "react";
 import clsx from "clsx";
 
 interface Transaction {
@@ -12,7 +12,7 @@ interface UsersProps {
   overBuyInUsers: string[];
   limitBuyIn: number;
   setUsers: (u: string[]) => void;
-  setTransactions: (t: Transaction | ((prevState: Transaction[]) => Transaction[])) => void;
+  setTransactions: (t: Transaction[] | ((prevState: Transaction[]) => Transaction[])) => void;
   setLimitBuyIn: (l: number) => void;
 }
 
@@ -24,16 +24,68 @@ const Users = ({
   setLimitBuyIn,
   limitBuyIn,
 }: UsersProps) => {
+  const INTERMEDIARY = "Bank";
   const inputRef = useRef<HTMLInputElement>(null);
   const buyInRef = useRef<HTMLInputElement>(null);
   const limitBuyInRef = useRef<HTMLInputElement>(null);
   const [isShowConfig, setIsShowConfig] = useState<boolean>(true);
+  const [file, setFile] = useState<File>();
+  const fileReader = new FileReader();
 
   const [defaultBuyIn, setDefaultBuyIn] = useState<number>(100);
   const moneyOfTransactionInputRef = useRef<HTMLInputElement>(null);
   const [creditor, setCreditor] = useState<string>();
   const [debitor, setDebitor] = useState<string>();
   const [isCopyLoading, setIsCopyLoading] = useState<boolean>(false);
+
+  const handleOnChange = (e: ChangeEvent<HTMLInputElement>) => {
+    if (!e.target.files) {
+      return;
+    }
+
+    setFile(e.target.files[0]);
+  };
+
+  const parseDataFromCSV = (csv: string) => {
+    const [header, ...rows] = csv.split("\n");
+    const players = [INTERMEDIARY];
+    const importedTransactions: Transaction[] = [];
+
+    rows.filter(Boolean).forEach((row) => {
+      const cells = row.split(",");
+      const netValue = Number(cells[cells.length - 1]);
+      const player = cells[0].split('"')[1];
+      players.push(player);
+
+      if (netValue > 0) {
+        importedTransactions.push({
+          money: netValue > 0 ? netValue : -netValue,
+          debitor: INTERMEDIARY,
+          creditor: player,
+        } as Transaction);
+      } else {
+        importedTransactions.push({
+          money: netValue > 0 ? netValue : -netValue,
+          creditor: INTERMEDIARY,
+          debitor: player,
+        } as Transaction);
+      }
+    });
+
+    setTransactions(importedTransactions);
+    setUsers(players);
+  };
+  const handleOnSubmit = (e: MouseEvent<HTMLButtonElement>) => {
+    e.preventDefault();
+    if (file) {
+      fileReader.onload = function (event: ProgressEvent<FileReader>) {
+        const csvOutput = event.target?.result;
+        console.log(csvOutput);
+        parseDataFromCSV(csvOutput as string);
+      };
+      fileReader.readAsText(file);
+    }
+  };
 
   const getBuyInValue = () => {
     if (!buyInRef.current) {
@@ -137,6 +189,15 @@ const Users = ({
               )}
             </button>
           </div>
+          <form>
+            <input type={"file"} id={"csvFileInput"} accept={".csv"} onChange={handleOnChange} />
+            <button
+              className="grow-0 p-2 border border-solid border-black h-10 w-full my-4"
+              onClick={handleOnSubmit}
+            >
+              IMPORT CSV
+            </button>
+          </form>
         </div>
         {isShowConfig && (
           <>

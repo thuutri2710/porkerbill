@@ -241,7 +241,10 @@ export default function Home() {
       />
 
       <div className="max-w-[1290px] mx-auto order-5 w-full">
-        <div id="finalResult" className="flex flex-col md:flex-row justify-evenly w-full bg-white">
+        <div
+          id="finalResult"
+          className="flex flex-col-reverse md:flex-row justify-evenly w-full bg-white"
+        >
           <div>
             <p className="text-lg font-medium text-center mb-4 bg-white">
               Transactions : {transactions.length}
