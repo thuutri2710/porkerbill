@@ -1,11 +1,7 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useEffect, useLayoutEffect, useRef, useState } from "react";
 import { toBlob } from "html-to-image";
-import clsx from "clsx";
-import Users from "@/components/Users";
-import { useRouter, useSearchParams } from "next/navigation";
-
 interface User {
   name: string;
   money: number;
@@ -18,95 +14,96 @@ interface Action {
 }
 
 export default function Home() {
-  const router = useRouter();
-  const queryParams = useSearchParams();
+  const inputRef = useRef<HTMLTextAreaElement>(null);
+  const buyInRef = useRef<HTMLInputElement>(null);
   const [result, setResult] = useState<[string, number][]>([]);
-  const [limitBuyIn, setLimitBuyIn] = useState(200);
   const [actions, setActions] = useState<Action[]>([]);
-  const [users, setUsers] = useState<string[]>(() => {
-    let persistedUsers: string | null = null;
-    const href = typeof window !== "undefined" ? window.location.href : "";
-    const sharedUsers = href
-      ? new URL(decodeURI(encodeURI(href))).searchParams.get("users") || ""
-      : "";
+  const [buyIn, setBuyIn] = useState<number>(100);
 
-    if (!sharedUsers) {
-      const localStorage = typeof window !== "undefined" ? window.localStorage : null;
-      persistedUsers = localStorage ? localStorage.getItem("users") : "";
-    } else {
-      persistedUsers = JSON.parse(sharedUsers);
-      localStorage.setItem("users", persistedUsers || "");
+  useLayoutEffect(() => {
+    if (!inputRef.current) {
+      return;
     }
 
-    return JSON.parse(persistedUsers || '["bank"]');
-  });
-  const [transactions, setTransactions] = useState<
-    { debitor: string; creditor: string; money: number }[]
-  >(() => {
-    let persistedTransactions: string | null = null;
-    const href = typeof window !== "undefined" ? window.location.href : "";
-    const sharedTransactions = href
-      ? new URL(decodeURI(encodeURI(href))).searchParams.get("transactions") || ""
-      : "";
+    const storedValue = localStorage.getItem("storedValue");
 
-    if (!sharedTransactions) {
-      const localStorage = typeof window !== "undefined" ? window.localStorage : null;
-      persistedTransactions = localStorage ? localStorage.getItem("transactionsV2") : "";
-    } else {
-      persistedTransactions = JSON.parse(sharedTransactions);
-      localStorage.setItem("transactionsV2", persistedTransactions || "");
+    if (storedValue) {
+      inputRef.current.value = storedValue;
+    }
+  }, []);
+
+  const getBuyInValue = () => {
+    if (!buyInRef.current) {
+      return;
     }
 
-    return JSON.parse(persistedTransactions || "[]");
-  });
+    const value = Number(buyInRef.current.value);
+    setBuyIn(value);
+  };
 
-  const overBuyInUsers = result.filter(([, money]) => money <= -limitBuyIn).map(([name]) => name);
+  const calculateMoney = () => {
+    if (!inputRef.current) {
+      return;
+    }
 
-  const calculateMoney = (shouldScroll: boolean) => {
     const obj: Record<string, number> = {};
-    try {
-      transactions.forEach((line) => {
-        const { debitor, creditor, money } = line;
+    const input = inputRef.current.value;
 
-        let parsedMoney = 0;
-        parsedMoney = Number(money);
+    const lines = input.split("\n").filter(Boolean);
 
-        if (isNaN(parsedMoney)) {
+    lines.forEach((line) => {
+      const [d, c, m = "100"] = line.split(" ");
+      const debitor = d.trim();
+      const creditor = c.trim();
+      const money = m.trim();
+
+      let times = 0;
+      let parsedMoney = 0;
+      if (money.startsWith("*")) {
+        times = Number(money.split("*")?.[1]);
+
+        if (isNaN(times)) {
           alert("Invalid transaction");
-
-          return;
         }
 
-        if (!parsedMoney) {
-          return;
-        }
-
-        if (obj[debitor] === undefined) {
-          obj[debitor] = 0;
-        }
-
-        if (obj[creditor] === undefined) {
-          obj[creditor] = 0;
-        }
-
-        obj[debitor] -= parsedMoney;
-        obj[creditor] += parsedMoney;
-      });
-
-      setResult(() => {
-        const sortedObj = Object.entries(obj).sort((a, b) => b[1] - a[1]);
-        generateResult(sortedObj);
-
-        return sortedObj;
-      });
-
-      const resultDiv = document.getElementById("actions");
-
-      if (resultDiv && shouldScroll) {
-        resultDiv.scrollIntoView({ behavior: "smooth" });
+        parsedMoney = buyIn * times;
+      } else {
+        parsedMoney = Number(money);
       }
-    } catch (e) {
-      console.log(e);
+
+      if (isNaN(parsedMoney)) {
+        alert("Invalid transaction");
+
+        return;
+      }
+
+      if (!parsedMoney) {
+        return;
+      }
+
+      if (obj[debitor] === undefined) {
+        obj[debitor] = 0;
+      }
+
+      if (obj[creditor] === undefined) {
+        obj[creditor] = 0;
+      }
+
+      obj[debitor] -= parsedMoney;
+      obj[creditor] += parsedMoney;
+    });
+
+    setResult(() => {
+      const sortedObj = Object.entries(obj).sort((a, b) => b[1] - a[1]);
+      generateResult(sortedObj);
+
+      return sortedObj;
+    });
+
+    const resultDiv = document.getElementById("result");
+
+    if (resultDiv) {
+      resultDiv.scrollIntoView({ behavior: "smooth" });
     }
   };
 
@@ -166,7 +163,7 @@ export default function Home() {
 
   const copyResultAsText = () => {
     const exportedText = actions
-      .map(({ debitor, creditor, money }) => `"${debitor} -> ${creditor} = ${money}"`)
+      .map(({ debitor, creditor, money }) => `"${debitor} ${creditor} ${money}"`)
       .join("\n");
 
     navigator.clipboard.write([
@@ -206,6 +203,7 @@ export default function Home() {
             }),
           }),
         ]);
+        console.log(blob);
         // const item = new ClipboardItem({ "image/png": dataUrl });
         // await navigator.clipboard.write([item]);
         console.log("Fetched image copied.");
@@ -217,51 +215,50 @@ export default function Home() {
     copyImageToClipboard();
   }, [actions]);
 
-  useEffect(() => {
-    calculateMoney(false);
-    localStorage.setItem("transactionsV2", JSON.stringify(transactions));
-  }, [transactions]);
-
-  useEffect(() => {
-    if (queryParams.get("transactions") || queryParams.get("users")) {
-      router.push("/v2", { shallow: true });
-    }
-  }, []);
-
   return (
     <div className="flex flex-col justify-center items-center w-full h-full mt-4 md:mt-8 px-2 md:px-0">
-      <Users
-        users={users}
-        setUsers={setUsers}
-        limitBuyIn={limitBuyIn}
-        setLimitBuyIn={setLimitBuyIn}
-        overBuyInUsers={limitBuyIn === -1 ? [] : overBuyInUsers}
-        //@ts-ignore
-        setTransactions={setTransactions}
-      />
-
+      <div className="order-1">
+        <input
+          ref={buyInRef}
+          name="buyIn"
+          type="number"
+          className="border border-gray-500 w-40 h-10 p-2"
+          placeholder="Default buy-in"
+        />
+        <button className="border border-gray-500 px-4 py-2 ml-4" onClick={getBuyInValue}>
+          Confirm
+        </button>
+      </div>
+      <div className="text-center my-4 text-lg order-2">
+        Default buy in is <b>{buyIn}</b>
+      </div>
       <div className="max-w-[1290px] mx-auto order-5 w-full">
-        <div
-          id="finalResult"
-          className="flex flex-col-reverse md:flex-row justify-evenly w-full bg-white"
-        >
+        <div id="finalResult" className="flex flex-col md:flex-row justify-evenly w-full bg-white">
           <div>
-            <p className="text-lg font-medium text-center mb-4 bg-white">
-              Transactions : {transactions.length}
-            </p>
-            <div className="border border-gray-500 w-full md:w-[220px] lg:w-[350px] min-h-[600px] p-4 placeholder-slate-400">
-              {transactions.map((t, index) => {
-                return (
-                  <div key={`${t.debitor}${t.creditor}${t.money}${index}`}>
-                    <span className="text-red-600">{t.debitor}</span>
-                    {"  "}
-                    <span className="text-green-600">{t.creditor}</span>
-                    {"  "}
-                    {t.money}
-                  </div>
-                );
-              })}
-            </div>
+            <p className="text-lg font-medium text-center mb-4 bg-white">Transactions</p>
+            <textarea
+              onChange={(e) => {
+                const input = e.target.value;
+                localStorage.setItem("storedValue", input);
+              }}
+              ref={inputRef}
+              className="border border-gray-500 w-full md:w-[220px] lg:w-[350px] min-h-[600px] p-4 placeholder-slate-400"
+              rows={inputRef.current?.value ? undefined : 5}
+              placeholder={`debitor creditor money(optional, default = 100)
+
+/*
+\*  debitor creditor defaultMoney*times
+*/            
+debitor creditor *times   
+
+e.g: 
+
+jack rose
+david jack 40
+rose jack 30
+jack david *2
+`}
+            ></textarea>
           </div>
           <div id="result">
             <p className="text-lg font-medium text-center mb-4 bg-white">Result</p>
@@ -269,11 +266,7 @@ export default function Home() {
               {result.map(([name, money]) => {
                 return (
                   <div className="flex flex-row justify-between" key={name}>
-                    <span
-                      className={clsx(money > 0 && "text-green-600", money < 0 && "text-red-600")}
-                    >
-                      {name}
-                    </span>
+                    <span>{name}</span>
                     <span>{money}</span>
                   </div>
                 );
@@ -283,18 +276,15 @@ export default function Home() {
           <div>
             <p className="text-lg font-medium text-center mb-4">Actions</p>
             <div
-              className="border border-gray-500 w-full md:w-[220px] lg:w-[350px] min-h-[600px] p-4 bg-white scroll-mt-2"
+              className="border border-gray-500 w-full md:w-[220px] lg:w-[350px] min-h-[600px] p-4 bg-white"
               id="actions"
             >
               {actions.map(({ debitor, creditor, money }) => {
                 return (
-                  <div
-                    className="flex flex-row justify-between border-b py-1"
-                    key={`${debitor}${creditor}`}
-                  >
-                    <span className="w-10 text-red-600">{debitor}</span>
+                  <div className="flex flex-row justify-between" key={`${debitor}${creditor}`}>
+                    <span className="w-10">{debitor}</span>
                     <span>→</span>
-                    <span className="w-10 text-green-600">{creditor}</span>
+                    <span className="w-10">{creditor}</span>
                     <span>=</span>
                     <span className="w-10">{money}</span>
                   </div>
@@ -310,7 +300,7 @@ export default function Home() {
       <div className="flex md:justify-evenly w-full md:w-3/4 mx-auto max-w-[1280px] mt-6 order-4 md:order-last justify-between mb-4 flex-col md:flex-row">
         <button
           className="py-4 px-8 text-lg border rounded border-gray-500"
-          onClick={() => calculateMoney(true)}
+          onClick={calculateMoney}
         >
           Calculate & copy result
         </button>
@@ -325,10 +315,8 @@ export default function Home() {
           onClick={() => {
             setResult([]);
             setActions([]);
-            setTransactions([]);
-            setUsers([]);
-            localStorage.setItem("transactionsV2", "");
-            localStorage.setItem("users", JSON.stringify(["bank"]));
+            localStorage.setItem("storedValue", "");
+            inputRef.current!.value = "";
           }}
         >
           Clear
