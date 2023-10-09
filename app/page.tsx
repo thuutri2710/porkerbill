@@ -173,9 +173,7 @@ export default function Home() {
       new ClipboardItem({
         "text/plain": new Promise(async (resolve, reject) => {
           try {
-            resolve(
-              new Blob([`/simplepoll "payment" ${exportedText} no-preview`], { type: "text/plain" })
-            );
+            resolve(new Blob([`/poll "payment" ${exportedText}`], { type: "text/plain" }));
           } catch (err) {
             reject(err);
           }
