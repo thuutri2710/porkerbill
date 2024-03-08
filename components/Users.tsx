@@ -302,7 +302,7 @@ const Users = ({
 
       {users.length > 0 && (
         <div className="flex flex-wrap gap-4 border border-solid border-black p-4">
-          <div>
+          <div className="flex flex-row md:flex-col gap-2 items-center justify-center mb-2 md:mb-0 md:mr-6">
             <div className="flex flex-row items-center mb-4">
               <span>Debitor</span>
               <span className="w-6 h-6 inline-block ml-2 bg-red-200" />
@@ -311,10 +311,10 @@ const Users = ({
               <span>Creditor</span>
               <span className="w-6 h-6 inline-block ml-2 bg-green-200" />
             </div>
-            <div className="flex flex-row items-center">
+            <div className="flex flex-row items-start">
               <span>No more buyin</span>
-              <span className="w-6 h-6 inline-block ml-2 border-gray-100 border-4 text-gray-400 underline text-center align-middle pb-1">
-                A
+              <span className="w-10 h-6 inline-block ml-2 border-gray-100 border-4 text-gray-400 underline text-center align-middle pb-1">
+                ABC
               </span>
             </div>
           </div>
