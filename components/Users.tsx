@@ -153,135 +153,140 @@ const Users = ({
   };
 
   return (
-    <div className="mb-6 w-full md:w-[850px] px-1 md:px-6">
-      <div className="flex flex-col md:flex-row justify-between">
-        <div>
-          <div className="flex flex-row md:flex-col pr-2">
-            <button
-              onClick={() => {
-                setIsShowConfig((p) => !p);
-              }}
-              className="grow-0 p-2 border border-solid border-black h-10 w-28 mb-4 mr-4"
-            >
-              {isShowConfig ? "Hide" : "Show"}
-            </button>
-            <button
-              className="flex justify-center items-center grow-0 p-2 border border-solid border-black h-10 w-40 bg-blue-500 text-white mb-4 md:ml-0 ml-4"
-              onClick={copySharedLink}
-            >
-              {isCopyLoading ? (
-                <svg
-                  className="animate-spin -ml-1 mr-3 h-5 w-5 text-white"
-                  xmlns="http://www.w3.org/2000/svg"
-                  fill="none"
-                  viewBox="0 0 24 24"
-                >
-                  <circle
-                    className="opacity-25"
-                    cx="12"
-                    cy="12"
-                    r="10"
-                    stroke="currentColor"
-                    stroke-width="4"
-                  ></circle>
-                  <path
-                    className="opacity-75"
-                    fill="currentColor"
-                    d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"
-                  ></path>
-                </svg>
-              ) : (
-                "Copy shared URL"
-              )}
-            </button>
-          </div>
-          <form>
-            <input type={"file"} id={"csvFileInput"} accept={".csv"} onChange={handleOnChange} />
-            <button
-              className="grow-0 p-2 border border-solid border-black h-10 w-full my-4"
-              onClick={handleOnSubmit}
-            >
-              IMPORT CSV
-            </button>
-          </form>
+    <div className="w-full space-y-8">
+      {/* Current Settings Display */}
+      <div className="flex flex-col sm:flex-row gap-6 items-center justify-center py-2">
+        <div className="flex items-center gap-2">
+          <span className="text-lg font-semibold text-slate-700">Default Buy-in:</span>
+          <span className="text-xl font-bold text-blue-600">${defaultBuyIn}</span>
         </div>
-        {isShowConfig && (
-          <>
-            <div className="md:px-2 md:border-x md:border-gray-200">
-              <div className="mb-4 md:mb-0 md:flex md:items-start">
+        <div className="flex items-center gap-2">
+          <span className="text-lg font-semibold text-slate-700">Debt Limit:</span>
+          <span className={clsx(
+            "text-xl font-bold",
+            limitBuyIn === -1 ? "text-red-600" : "text-amber-600"
+          )}>
+            {limitBuyIn === -1 ? "Unlimited" : `$${limitBuyIn}`}
+          </span>
+        </div>
+      </div>
+
+      {/* Top Controls */}
+      <div className="flex flex-col sm:flex-row gap-6 justify-between items-start">
+        <div className="flex flex-col sm:flex-row gap-4">
+          <button
+            onClick={() => setIsShowConfig((p) => !p)}
+            className="px-6 py-3 bg-slate-100 hover:bg-slate-200 border border-slate-300 text-slate-700 rounded-lg font-medium transition-colors touch-manipulation"
+          >
+            {isShowConfig ? "Hide Controls" : "Show Controls"}
+          </button>
+          <button
+            className="flex items-center justify-center px-6 py-3 bg-blue-600 hover:bg-blue-700 disabled:bg-blue-400 text-white rounded-lg font-medium transition-colors touch-manipulation"
+            onClick={copySharedLink}
+            disabled={isCopyLoading}
+          >
+            {isCopyLoading ? (
+              <>
+                <div className="animate-spin rounded-full h-4 w-4 border-2 border-white border-t-transparent mr-3"></div>
+                Copying...
+              </>
+            ) : (
+              "Copy Shared URL"
+            )}
+          </button>
+        </div>
+
+        {/* CSV Import */}
+        <div className="flex flex-col sm:flex-row gap-4 items-start">
+          <div className="relative">
+            <input
+              type="file"
+              id="csvFileInput"
+              accept=".csv"
+              onChange={handleOnChange}
+              className="absolute inset-0 w-full h-full opacity-0 cursor-pointer"
+            />
+            <div className="px-6 py-3 bg-slate-100 hover:bg-slate-200 border border-slate-300 text-slate-700 rounded-lg font-medium cursor-pointer transition-colors">
+              Choose CSV File
+            </div>
+          </div>
+          <button
+            className="px-6 py-3 bg-emerald-600 hover:bg-emerald-700 disabled:bg-slate-400 text-white rounded-lg font-medium transition-colors touch-manipulation"
+            onClick={handleOnSubmit}
+            disabled={!file}
+          >
+            Import CSV
+          </button>
+        </div>
+      </div>
+
+      {/* Configuration Section */}
+      {isShowConfig && (
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-6 p-6 bg-slate-50 rounded-lg border border-slate-200">
+          {/* Buy-in Settings */}
+          <div className="space-y-4">
+            <h4 className="font-medium text-slate-900">Buy-in Settings</h4>
+            <div className="space-y-3">
+              <div className="space-y-2">
                 <input
                   min={1}
                   ref={buyInRef}
                   name="buyIn"
                   type="number"
-                  className="border border-gray-500 w-40 h-10 p-2"
+                  className="w-full px-3 py-2 border border-slate-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
                   placeholder="Default buy-in"
                 />
                 <button
-                  className="border border-gray-500 px-4 py-2 ml-2 md:ml-2 md:mt-0"
+                  className="w-full px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white rounded-lg font-medium transition-colors touch-manipulation"
                   onClick={getBuyInValue}
                 >
                   Confirm
                 </button>
               </div>
-              <div className="mb-4 md:mb-0 md:flex md:items-start mt-4">
+              <div className="text-sm text-slate-600">
+                Current default: <span className="font-medium">${defaultBuyIn}</span>
+              </div>
+            </div>
+          </div>
+
+          {/* Limit Settings */}
+          <div className="space-y-4">
+            <h4 className="font-medium text-slate-900">Limit Settings</h4>
+            <div className="space-y-3">
+              <div className="space-y-2">
                 <input
                   min={1}
                   ref={limitBuyInRef}
+                  disabled={limitBuyIn === -1}
                   name="limitBuyIn"
                   type="number"
-                  className="border border-gray-500 w-40 h-10 p-2"
+                  className="w-full px-3 py-2 border border-slate-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent disabled:bg-slate-100 disabled:text-slate-500"
                   placeholder="Default limit: 200"
                 />
                 <button
-                  className="border border-gray-500 px-4 py-2 ml-2 md:ml-2 md:mt-0"
+                  disabled={limitBuyIn === -1}
+                  className={clsx(
+                    "w-full px-4 py-2 rounded-lg font-medium transition-colors touch-manipulation",
+                    limitBuyIn === -1
+                      ? "bg-slate-300 text-slate-500 cursor-not-allowed"
+                      : "bg-amber-600 hover:bg-amber-700 text-white"
+                  )}
                   onClick={() => {
                     if (limitBuyInRef.current && Number(limitBuyInRef.current.value) > 0) {
                       setLimitBuyIn(Number(limitBuyInRef.current.value));
-
                       limitBuyInRef.current.value = "";
                     }
                   }}
                 >
-                  Set limit buyin
+                  Set Limit
                 </button>
               </div>
-            </div>
-            <div className="md:pl-2 pl-0">
-              <form
-                className="md:mb-0 md:flex md:items-start"
-                onSubmit={(e) => {
-                  e.preventDefault();
-                  const form = e.target as HTMLFormElement;
-                  const formData = new FormData(form);
-                  const newUser = (Object.fromEntries(formData.entries()).user as string) || "";
-
-                  if (newUser && !users.includes(newUser)) {
-                    setUsers([...users, newUser]);
-                    localStorage.setItem("users", JSON.stringify([...users, newUser]));
-                  }
-                  if (inputRef.current) {
-                    inputRef.current.value = "";
-                  }
-                }}
-              >
-                <input
-                  ref={inputRef}
-                  placeholder="user name"
-                  name="user"
-                  className="px-4 py-2 border-black border-solid border w-[180px] mr-2"
-                />
-                <button
-                  type="submit"
-                  className="px-4 py-2 border border-solid border-black md:mt-0"
-                >
-                  Add user
-                </button>
-              </form>
               <button
                 className={clsx(
-                  "px-4 py-2 border border-solid border-black my-4",
-                  limitBuyIn === -1 && "bg-blue-500 text-white"
+                  "w-full px-4 py-2 rounded-lg font-medium transition-colors touch-manipulation",
+                  limitBuyIn === -1
+                    ? "bg-red-600 hover:bg-red-700 text-white"
+                    : "bg-slate-200 hover:bg-slate-300 text-slate-700"
                 )}
                 onClick={() => {
                   if (limitBuyIn > 0) {
@@ -291,134 +296,204 @@ const Users = ({
                   }
                 }}
               >
-                No limit buyin
+                {limitBuyIn === -1 ? "Remove Limit" : "No Limit Mode"}
               </button>
             </div>
-          </>
-        )}
-      </div>
-
-      <hr className="my-2" />
-
-      {users.length > 0 && (
-        <div className="flex flex-wrap gap-4 border border-solid border-black p-4">
-          <div className="flex flex-row md:flex-col gap-2 items-center justify-center mb-2 md:mb-0 md:mr-6">
-            <div className="flex flex-row items-center mb-4">
-              <span>Debitor</span>
-              <span className="w-6 h-6 inline-block ml-2 bg-red-200" />
-            </div>
-            <div className="flex flex-row items-center mb-4">
-              <span>Creditor</span>
-              <span className="w-6 h-6 inline-block ml-2 bg-green-200" />
-            </div>
-            <div className="flex flex-row items-start">
-              <span>No more buyin</span>
-              <span className="w-10 h-6 inline-block ml-2 border-gray-100 border-4 text-gray-400 underline text-center align-middle pb-1">
-                ABC
-              </span>
-            </div>
           </div>
-          {users.map((user) => {
-            const isOverBuyIn = overBuyInUsers.includes(user);
 
-            return (
-              <div
-                className={clsx(
-                  "border-2 border-solid border-black p-5 cursor-pointer flex-grow-0 h-[70px]",
-                  debitor === user && "bg-red-200",
-                  creditor === user && "bg-green-200",
-                  isOverBuyIn && "underline cursor-default border-gray-100 border-4 text-gray-400"
-                )}
-                key={user}
-                onClick={() => {
-                  if (debitor && creditor && user !== debitor && user !== creditor) {
-                    return;
-                  }
+          {/* User Management */}
+          <div className="space-y-4">
+            <h4 className="font-medium text-slate-900">Add Users</h4>
+            <form
+              className="space-y-3"
+              onSubmit={(e) => {
+                e.preventDefault();
+                const form = e.target as HTMLFormElement;
+                const formData = new FormData(form);
+                const newUser = (Object.fromEntries(formData.entries()).user as string) || "";
 
-                  if (debitor === user) {
-                    setDebitor(undefined);
-                    //   setCreditor(undefined);
-                  }
-
-                  if (creditor === user) {
-                    setCreditor(undefined);
-                  }
-
-                  if (!debitor && !creditor) {
-                    if (isOverBuyIn) {
-                      alert(`No more buyin for ${user}`);
-
-                      return;
-                    }
-                    setDebitor(user);
-                  }
-                  if (debitor && !creditor) {
-                    if (debitor !== user) {
-                      setCreditor(user);
-                    }
-                  }
-                  if (!debitor && creditor) {
-                    if (creditor !== user) {
-                      setDebitor(user);
-                    }
-                  }
-                }}
-              >
-                {user}
+                if (newUser && !users.includes(newUser)) {
+                  setUsers([...users, newUser]);
+                  localStorage.setItem("users", JSON.stringify([...users, newUser]));
+                }
+                if (inputRef.current) {
+                  inputRef.current.value = "";
+                }
+              }}
+            >
+              <div className="space-y-2">
+                <input
+                  ref={inputRef}
+                  placeholder="User name"
+                  name="user"
+                  className="w-full px-3 py-2 border border-slate-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                />
+                <button
+                  type="submit"
+                  className="w-full px-4 py-2 bg-emerald-600 hover:bg-emerald-700 text-white rounded-lg font-medium transition-colors touch-manipulation"
+                >
+                  Add User
+                </button>
               </div>
-            );
-          })}
+            </form>
+          </div>
         </div>
       )}
-      <div className="mt-4 flex flex-row gap-4 md:gap-8 justify-between">
-        <button
-          className="px-4 py-2 border mb-4 border-solid border-black w-[250px]"
-          disabled={!debitor || !creditor}
-          onClick={() => {
-            setTransactions((transactions) => {
-              return [...transactions, { debitor, creditor, money: defaultBuyIn } as Transaction];
-            });
 
-            setDebitor(undefined);
-            setCreditor(undefined);
-          }}
-        >
-          Add default transaction <b>{defaultBuyIn}</b>
-        </button>
-        <form className="border-l pl-4 md:pl-0 border-0">
+      {/* User Selection */}
+      {users.length > 0 && (
+        <div className="space-y-6">
+          <div className="flex flex-col sm:flex-row gap-6 justify-between items-start">
+            <h4 className="font-semibold text-slate-900 text-lg">Select Users for Transaction</h4>
+            <div className="flex flex-wrap gap-6 text-sm">
+              <div className="flex items-center gap-2">
+                <div className="w-4 h-4 bg-red-200 rounded border"></div>
+                <span className="font-medium">Debitor</span>
+              </div>
+              <div className="flex items-center gap-2">
+                <div className="w-4 h-4 bg-green-200 rounded border"></div>
+                <span className="font-medium">Creditor</span>
+              </div>
+              <div className="flex items-center gap-2">
+                <div className="w-4 h-4 bg-slate-200 rounded border border-dashed"></div>
+                <span className="font-medium">Over limit</span>
+              </div>
+            </div>
+          </div>
+
+          <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-6 gap-4">
+            {users.map((user) => {
+              const isOverBuyIn = overBuyInUsers.includes(user);
+              const isDebitor = debitor === user;
+              const isCreditor = creditor === user;
+
+              return (
+                <button
+                  key={user}
+                  className={clsx(
+                    "min-h-[60px] px-5 py-4 rounded-lg border-2 font-medium transition-all touch-manipulation",
+                    isDebitor && "bg-red-200 border-red-400 text-red-800",
+                    isCreditor && "bg-green-200 border-green-400 text-green-800",
+                    !isDebitor &&
+                      !isCreditor &&
+                      !isOverBuyIn &&
+                      "bg-white border-slate-300 hover:bg-slate-50 text-slate-900",
+                    isOverBuyIn &&
+                      "bg-slate-100 border-slate-300 border-dashed text-slate-500 cursor-not-allowed"
+                  )}
+                  onClick={() => {
+                    if (debitor && creditor && user !== debitor && user !== creditor) {
+                      return;
+                    }
+
+                    if (debitor === user) {
+                      setDebitor(undefined);
+                    } else if (creditor === user) {
+                      setCreditor(undefined);
+                    } else if (!debitor && !creditor) {
+                      if (isOverBuyIn) {
+                        alert(`No more buyin for ${user}`);
+                        return;
+                      }
+                      setDebitor(user);
+                    } else if (debitor && !creditor) {
+                      if (debitor !== user) {
+                        setCreditor(user);
+                      }
+                    } else if (!debitor && creditor) {
+                      if (creditor !== user) {
+                        setDebitor(user);
+                      }
+                    }
+                  }}
+                  disabled={isOverBuyIn}
+                >
+                  {user}
+                </button>
+              );
+            })}
+          </div>
+        </div>
+      )}
+
+      {/* Selection Status */}
+      {((debitor || creditor) && !debitor) ||
+        (!creditor && (
+          <div
+            className={clsx(
+              "text-center bg-yellow-50 rounded-lg",
+              !debitor || !creditor ? "p-0" : "border border-yellow-200 py-4 px-6"
+            )}
+          >
+            <span className="text-yellow-800 font-medium">
+              {debitor && !creditor
+                ? `Selected debitor: ${debitor} (choose creditor)`
+                : !debitor && creditor
+                ? `Selected creditor: ${creditor} (choose debitor)`
+                : null}
+            </span>
+          </div>
+        ))}
+
+      {/* Transaction Actions */}
+      {debitor && creditor && (
+        <div className="flex flex-col sm:flex-row gap-6 p-6 bg-blue-50 rounded-lg border border-blue-200">
           <button
-            type="submit"
-            className="px-4 mb-4 md:mb-0 py-2 border border-solid border-black w-[215px]"
+            className="flex-1 px-8 py-4 bg-blue-600 hover:bg-blue-700 disabled:bg-slate-400 text-white rounded-lg font-medium transition-colors touch-manipulation"
             disabled={!debitor || !creditor}
-            onClick={(e) => {
-              e.preventDefault();
-              const money = moneyOfTransactionInputRef.current?.value || 0;
-              if (!money || Number(money) <= 0) {
-                return;
-              }
+            onClick={() => {
               setTransactions((transactions) => {
-                return [...transactions, { debitor, creditor, money: +money } as Transaction];
+                return [...transactions, { debitor, creditor, money: defaultBuyIn } as Transaction];
               });
-
-              if (moneyOfTransactionInputRef.current) {
-                moneyOfTransactionInputRef.current.value = "";
-              }
-
               setDebitor(undefined);
               setCreditor(undefined);
             }}
           >
-            Add transaction with
+            Add Default Transaction (${defaultBuyIn})
           </button>
-          <input
-            min={1}
-            ref={moneyOfTransactionInputRef}
-            type="number"
-            name="transaction"
-            className="px-4 py-2 border md:ml-4 border-solid border-black w-[100px]"
-          />
-        </form>
-      </div>
+
+          <div className="flex flex-col sm:flex-row gap-3 flex-1">
+            <input
+              min={1}
+              ref={moneyOfTransactionInputRef}
+              type="number"
+              placeholder="Amount"
+              className="flex-1 px-4 py-4 border border-slate-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+            />
+            <button
+              className="px-8 py-4 bg-emerald-600 hover:bg-emerald-700 disabled:bg-slate-400 text-white rounded-lg font-medium transition-colors touch-manipulation"
+              disabled={!debitor || !creditor}
+              onClick={(e) => {
+                e.preventDefault();
+                const money = moneyOfTransactionInputRef.current?.value || 0;
+                if (!money || Number(money) <= 0) {
+                  return;
+                }
+                setTransactions((transactions) => {
+                  return [...transactions, { debitor, creditor, money: +money } as Transaction];
+                });
+
+                if (moneyOfTransactionInputRef.current) {
+                  moneyOfTransactionInputRef.current.value = "";
+                }
+                setDebitor(undefined);
+                setCreditor(undefined);
+              }}
+            >
+              Add Custom
+            </button>
+          </div>
+        </div>
+      )}
+
+      {/* Success Status */}
+      {debitor && creditor && (
+        <div className="text-center py-4 px-6 bg-green-50 border border-green-200 rounded-lg">
+          <span className="text-green-800 font-medium">
+            Ready to create transaction: {debitor} → {creditor}
+          </span>
+        </div>
+      )}
     </div>
   );
 };
