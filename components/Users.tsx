@@ -437,9 +437,9 @@ const Users = ({
 
       {/* Transaction Actions */}
       {debitor && creditor && (
-        <div className="flex flex-col sm:flex-row gap-6 p-6 bg-blue-50 rounded-lg border border-blue-200">
+        <div className="flex flex-col sm:flex-row gap-4 p-4 bg-slate-50 rounded-lg border border-slate-200">
           <button
-            className="flex-1 px-8 py-4 bg-blue-600 hover:bg-blue-700 disabled:bg-slate-400 text-white rounded-lg font-medium transition-colors touch-manipulation"
+            className="px-6 py-3 bg-blue-600 hover:bg-blue-700 disabled:bg-slate-400 text-white rounded-lg font-medium transition-colors touch-manipulation"
             disabled={!debitor || !creditor}
             onClick={() => {
               setTransactions((transactions) => {
@@ -449,19 +449,19 @@ const Users = ({
               setCreditor(undefined);
             }}
           >
-            Add Default Transaction (${defaultBuyIn})
+            Add ${defaultBuyIn}
           </button>
 
-          <div className="flex flex-col sm:flex-row gap-3 flex-1">
+          <div className="flex flex-1 gap-2">
             <input
               min={1}
               ref={moneyOfTransactionInputRef}
               type="number"
               placeholder="Amount"
-              className="flex-1 px-4 py-4 border border-slate-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+              className="flex-1 px-3 py-3 border border-slate-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
             />
             <button
-              className="px-8 py-4 bg-emerald-600 hover:bg-emerald-700 disabled:bg-slate-400 text-white rounded-lg font-medium transition-colors touch-manipulation"
+              className="px-6 py-3 bg-emerald-600 hover:bg-emerald-700 disabled:bg-slate-400 text-white rounded-lg font-medium transition-colors touch-manipulation"
               disabled={!debitor || !creditor}
               onClick={(e) => {
                 e.preventDefault();
